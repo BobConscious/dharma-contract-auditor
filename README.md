@@ -43,18 +43,17 @@ cp .env.example .env        # then paste in your three keys
 npm start                   # → http://localhost:3000
 ```
 
-## Get Dharma AI credentials
+## Get Dharma AI Credentials
 
-Live audits require a Dharma AI HQ organization with Developer API access.
+Live contract audits require a Dharma AI HQ organization with Developer API access.
 
-1. Sign in to Dharma AI HQ: <https://hq.dharma-ai.io>
-2. Open **Portal -> Developer Suite -> Developer API**, or go directly to
-   `https://hq.dharma-ai.io/dev/developer-api?orgId=<your_org_id>`.
+1. Sign in to Dharma AI HQ: https://hq.dharma-ai.io
+2. Open **Portal -> Developer Suite -> Developer API**, or go directly to:
+   https://hq.dharma-ai.io/dev/developer-api?orgId=<your_org_id>
 3. You must be an organization owner/admin for that org.
-4. Create a developer token with `rag:search`. Add `rag:rerank` if you leave
+4. Create a developer token with `rag:search`. Add `rag:rerank` if you want
    reranking enabled.
-5. Copy the token immediately. It starts with `dharma_org_` and is shown only
-   once.
+5. Copy the token immediately. It starts with `dharma_org_` and is shown only once.
 6. Add `DHARMA_ORG_ID` and `DHARMA_DEV_TOKEN` to `.env`.
 
 If you do not have Dharma AI HQ access or an org admin role, request access from
