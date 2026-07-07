@@ -1,0 +1,24 @@
+{
+  "name": "dharma-contract-auditor",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "license": "MIT",
+  "description": "Audits contracts through a legal-logical and Right Livelihood ethics lens, grounded in the Dharma AI RAG corpus with verified citations. Clone, add your keys, run.",
+  "scripts": {
+    "start": "tsx server/index.ts",
+    "dev": "tsx watch server/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^4.0.8",
+    "ai": "^7.0.16",
+    "dotenv": "^16.4.5",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.5.4"
+  }
+}

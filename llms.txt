@@ -1,0 +1,26 @@
+# Dharma Contract Auditor
+
+> A self-contained web tool that audits a contract through two lenses — legal-logical consistency and Buddhist Right Livelihood ethics — grounded in the Dharma AI RAG corpus. A plain Node HTTP server serves one inline-styled HTML page and exposes POST /api/audit, which calls the Dharma RAG API plus Google Gemini server-side and returns a typed audit whose ethical citations are verified against the retrieved source text. No framework, no build step. Output is not legal advice.
+
+Run it: `npm install`, then copy `.env.example` to `.env` and add three keys (DHARMA_ORG_ID, DHARMA_DEV_TOKEN, GOOGLE_GENERATIVE_AI_API_KEY), then `npm start` → http://localhost:3000. Dharma AI credentials come from https://hq.dharma-ai.io via Portal -> Developer Suite -> Developer API and require an org owner/admin role. Requires Node >= 18. Do not add a framework or build step. Secrets are read only in server/index.ts and must never reach the browser. On HTTP 402 token_pool_empty, halt without retry. Do not remove the not-legal-advice disclaimer.
+
+## Start here
+- [AGENTS.md](AGENTS.md): step-by-step runbook — prerequisites, setup, start, verification curls, request/response contract, guardrails, troubleshooting.
+- [README.md](README.md): human overview, features, run steps, architecture.
+
+## Code
+- [server/index.ts](server/index.ts): HTTP server; serves public/index.html and handles POST /api/audit. Only place secrets are read; attaches the disclaimer.
+- [public/index.html](public/index.html): entire UI — inline CSS plus a JS renderer for the returned audit JSON.
+- [src/lib/schema.ts](src/lib/schema.ts): Zod schemas — the /api/audit request contract and the full ContractAudit model-output contract.
+- [src/lib/contractAuditor.ts](src/lib/contractAuditor.ts): the pipeline — multi-query retrieve, rerank, structured generateObject draft, citation verification.
+- [src/lib/dharmaClient.ts](src/lib/dharmaClient.ts): typed Dharma RAG search + rerank client with timeout, retry/backoff, 402-halt, 202 async poll-loop.
+- [src/lib/grounding.ts](src/lib/grounding.ts): near-verbatim quote verification labeling each citation verified / partial / unverified.
+
+## Reference
+- [docs/IMPLEMENTATION-NOTES.md](docs/IMPLEMENTATION-NOTES.md): design notes for structured output, retrieval, safety, and failure handling.
+- [.env.example](.env.example): required and optional environment variables.
+- [preview/contract-auditor.html](preview/contract-auditor.html): static, no-keys design preview.
+
+## API
+- POST /api/audit — body: { contractText (>=50 chars), contractType, perspective, focus? }. Returns 200 { audit, provenance, warnings, disclaimer, credits }; 400 invalid_request; 402 token_pool_empty (do not retry); 500 server_misconfigured; 502 upstream/generation failure.
+- GET / — serves the UI.

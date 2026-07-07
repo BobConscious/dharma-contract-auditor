@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dharma Contract Auditor — preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--paper:#f7f1e6;--raised:#fdfaf3;--ink:#2a2118;--ink2:#4c4234;--muted:#8a7d68;--line:#ece2d0;--line2:#e0d3ba;--saffron:#c8641b;--saffron-d:#a8500f;--saffron-soft:#f3e2d0;--indigo:#2e3564;--indigo-soft:#e4e6f1;--gold:#b4841f;--ok:#2f7d4f;--ok-soft:#e0f0e6;--warn:#9a6a12;--warn-soft:#f6ecd4;--bad:#9c3535;--bad-soft:#f3e0dd;--serif:"Fraunces","Iowan Old Style",Palatino,Georgia,serif;--sans:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--shadow:0 1px 2px rgba(70,50,25,.05),0 14px 40px rgba(90,66,30,.09);}
+  *{box-sizing:border-box}html,body{margin:0;padding:0}
+  body{font-family:var(--sans);color:var(--ink);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;background:radial-gradient(1100px 520px at 82% -8%,#eae6f2 0%,rgba(234,230,242,0) 55%),radial-gradient(820px 480px at -8% -4%,#f6e6cf 0%,rgba(246,230,207,0) 48%),var(--paper);}
+  .wrap{max-width:1160px;margin:0 auto;padding:44px 24px 110px}
+  .hero{display:flex;gap:18px;align-items:flex-start;margin-bottom:30px}
+  .mark{flex:none;width:56px;height:56px;border-radius:16px;display:grid;place-items:center;color:#fff;background:linear-gradient(150deg,#3a4177,#262c56);box-shadow:0 6px 18px rgba(38,44,86,.28);font-family:var(--serif);font-size:28px;font-weight:600}
+  .kicker{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--indigo);font-weight:600}
+  .hero h1{font-family:var(--serif);font-weight:600;font-size:38px;line-height:1.02;letter-spacing:-.02em;margin:4px 0 8px}
+  .hero p{margin:0;color:var(--muted);max-width:66ch}.hero em{color:var(--ink2);font-style:italic}
+  .grid{display:grid;grid-template-columns:400px 1fr;gap:28px;align-items:start}@media(max-width:940px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--raised);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+  .panel{position:sticky;top:22px;padding:22px}@media(max-width:940px){.panel{position:static}}
+  .field{margin-bottom:16px}.field>label{display:block;font-size:12.5px;font-weight:600;margin-bottom:7px;color:var(--ink)}.field .hint{font-weight:400;color:var(--muted)}
+  select,input[type=text],textarea{width:100%;padding:10px 12px;border:1px solid var(--line2);border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-size:14px}
+  textarea#contract{min-height:230px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.5}
+  .seg{display:flex;gap:6px}.seg button{flex:1;padding:8px 10px;border:1px solid var(--line2);background:#fff;color:var(--muted);border-radius:10px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  .seg button[aria-pressed=true]{background:var(--indigo);border-color:var(--indigo);color:#fff}
+  .btn-primary{width:100%;margin-top:6px;padding:13px 16px;border:none;border-radius:11px;color:#fff;font:inherit;font-size:15px;font-weight:600;cursor:pointer;background:linear-gradient(150deg,#3a4177,#262c56);box-shadow:0 6px 16px rgba(38,44,86,.26)}
+  .empty{padding:72px 32px;text-align:center;color:var(--muted)}.empty .om{font-size:44px;opacity:.4;color:var(--indigo)}
+  .result{padding:30px 36px}.toolbar{display:flex;justify-content:space-between;margin-bottom:16px}.credits{font-size:12.5px;color:var(--muted)}
+  .ghost-btn{border:1px solid var(--line2);background:#fff;border-radius:10px;padding:8px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  .riskbanner{display:flex;align-items:center;gap:16px;padding:16px 20px;border-radius:14px;margin-bottom:18px;border:1px solid}
+  .riskbanner .rr{font-family:var(--serif);font-size:13px;text-transform:uppercase;letter-spacing:.1em;font-weight:600}.riskbanner .rec{font-size:19px;font-weight:600;font-family:var(--serif)}.riskbanner .why{font-size:13.5px;margin-top:2px}
+  .r-elevated{background:var(--saffron-soft);border-color:#e7c9a6;color:#8a4310}.r-high{background:var(--bad-soft);border-color:#e6bcb6;color:#7a2626}
+  .dial{flex:none;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;text-transform:uppercase;background:#fff8;border:2px solid currentColor}
+  .result h2{font-family:var(--serif);font-weight:600;font-size:22px;margin:0 0 6px}.lead{font-size:16px;color:var(--ink2);margin:0 0 16px}
+  .snap{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.snap .cell{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px}.snap .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}.snap .v{font-size:14px;margin-top:2px}
+  .section{margin-top:26px;padding-top:22px;border-top:1px solid var(--line)}.section>h3{font-family:var(--serif);font-weight:600;font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:var(--indigo);margin:0 0 14px;display:flex;gap:8px;align-items:center}
+  .count{background:var(--indigo-soft);color:var(--indigo);font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px}
+  .issue{border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:13px 15px;margin-bottom:10px;background:#fff}.issue .top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:5px}.issue h4{margin:0;font-size:15px;font-weight:600;flex:1;min-width:180px}
+  .sev{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:6px}.sev.high{background:var(--saffron-soft);color:var(--saffron-d)}.sev.critical{background:var(--bad-soft);color:var(--bad)}.sev.medium{background:var(--warn-soft);color:var(--warn)}
+  .il-high{border-left-color:var(--saffron)}.il-critical{border-left-color:var(--bad)}.il-medium{border-left-color:#d9b45e}
+  .cat{font-size:11px;color:var(--muted);text-transform:capitalize}.clause{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--indigo);background:var(--indigo-soft);padding:1px 7px;border-radius:5px}.issue p{margin:6px 0 0}.principle{margin:7px 0 0;font-size:13.5px;color:var(--ink2)}
+  .qp{margin:8px 0 0;padding:8px 12px;border-left:3px solid var(--indigo);background:#fbfaf6;border-radius:0 8px 8px 0;font-family:var(--serif);font-size:14px}.qp cite{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:3px}
+  .rev{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:10px}.rev .rh{padding:8px 13px;background:#faf5ea;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted)}.rev .diff{display:grid;grid-template-columns:1fr 1fr}@media(max-width:620px){.rev .diff{grid-template-columns:1fr}}
+  .rev .col{padding:11px 14px;font-size:13.5px}.rev .before{background:#fbeeec;border-right:1px solid var(--line)}.rev .after{background:#eef6f0}.rev .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:4px}.rev .before .lbl{color:var(--bad)}.rev .after .lbl{color:var(--ok)}.rev .rationale{padding:10px 14px;font-size:13px;color:var(--ink2);border-top:1px solid var(--line)}
+  ul.q{margin:0;padding-left:20px}ul.q li{margin-bottom:7px}
+  table.rr{width:100%;border-collapse:collapse;font-size:13px}table.rr th,table.rr td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}table.rr th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}.li{font-weight:600;text-transform:capitalize}.li.high{color:var(--bad)}.li.medium{color:var(--warn)}
+  .cites{display:grid;gap:8px}.cite{display:flex;align-items:baseline;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}.cite .id{font-weight:600;color:var(--indigo);font-size:13px}.cite .info{flex:1}.cite .info b{font-weight:600;font-size:14px}.cite .info span{display:block;color:var(--muted);font-size:12.5px}
+  .badge{flex:none;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}.badge.verified{background:var(--ok-soft);color:var(--ok)}.badge.unverified{background:var(--bad-soft);color:var(--bad)}
+  .disclaimer{margin-top:18px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;font-style:italic}
+  .demo-note{font-size:12px;color:var(--muted);margin:14px 2px 0;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="mark" aria-hidden="true">§</div>
+    <div><div class="kicker">Dharma AI · Developer Platform</div><h1>Contract Auditor</h1>
+      <p>Reviews a contract through two lenses at once — <em>legal-logical consistency</em> and <em>Right Livelihood ethics</em> — grounded in the Dharma corpus. Every ethical citation is checked against the retrieved source before it earns a <em>verified</em> badge. Not legal advice.</p></div>
+  </header>
+  <div class="grid">
+    <section class="card panel">
+      <div class="field"><label for="contract">Contract text</label><textarea id="contract"></textarea></div>
+      <div class="field"><label>Contract type</label><select id="ctype"><option>Employment</option></select></div>
+      <div class="field"><label>Review from the perspective of</label><div class="seg"><button>Your side</button><button aria-pressed="true">Neutral</button></div></div>
+      <button class="btn-primary" id="go">Audit contract</button>
+    </section>
+    <section class="card" id="out"><div class="empty"><div class="om">§</div><p>Click “Audit contract” to see a sample audit of the loaded clause.</p></div></section>
+  </div>
+  <p class="demo-note">Static preview with sample content. In the live app, the audit runs server-side against the Dharma RAG API + Gemini.</p>
+</div>
+<script>
+const SAMPLE=`SECTION 7. TERMINATION & NON-COMPETE
+7.1 The Company may terminate this Agreement at any time, without notice or severance.
+7.2 The Contractor may terminate only upon ninety (90) days notice, and forfeits all accrued unpaid compensation.
+7.3 For five (5) years after termination, the Contractor shall not, anywhere in the world, engage in any competing business.
+7.4 All disputes are resolved solely at the Company's discretion; the Contractor waives any right to review or recourse.`;
+document.getElementById('contract').value=SAMPLE;
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const cap=s=>String(s??"").replace(/_/g," ");
+const AUDIT={
+  overallRiskRating:"high",recommendation:"renegotiate",
+  recommendationRationale:"The termination, non-compete, and dispute clauses are heavily one-sided and partly unenforceable; several would not survive review in most jurisdictions.",
+  summary:"A short employment/contractor agreement whose termination, non-compete and dispute-resolution clauses allocate nearly all rights to the Company. Multiple terms are both logically one-sided and ethically exploitative, and at least two are likely unenforceable.",
+  contractSnapshot:{type:"Employment / contractor",parties:"Company and Contractor (names not in excerpt)",termOrDuration:"Not specified; non-compete runs 5 years post-termination",governingLaw:"Not specified"},
+  logicalIssues:[
+    {title:"Asymmetric termination rights",category:"unilateral_right",severity:"high",clauseReference:"§7.1–7.2",explanation:"The Company may terminate instantly without notice or severance, while the Contractor must give 90 days' notice AND forfeit accrued pay. The obligations are structurally non-reciprocal."},
+    {title:"Forfeiture of earned compensation",category:"unenforceable_term",severity:"critical",clauseReference:"§7.2",explanation:"Forfeiting already-accrued, earned wages on resignation is void under wage laws in most jurisdictions — the clause is likely unenforceable, not merely unfair."},
+    {title:"Blanket waiver of legal recourse",category:"unenforceable_term",severity:"critical",clauseReference:"§7.4",explanation:"A total waiver of any right to review or recourse, with disputes decided at one party's sole discretion, is not enforceable and removes ordinary legal protections."},
+    {title:"Unbounded non-compete",category:"ambiguity",severity:"high",clauseReference:"§7.3",explanation:"'Anywhere in the world' for five years with no field or role limitation is likely overbroad and unenforceable; 'competing business' is also undefined."}
+  ],
+  ethicalIssues:[
+    {title:"Exploitative power imbalance",category:"power_imbalance",severity:"high",clauseReference:"§7.1–7.4",principle:"Agreements should not concentrate all advantage in the stronger party.",explanation:"Every clause shifts risk onto the Contractor while insulating the Company — a pattern at odds with fair dealing and Right Livelihood.",sourceIds:["S1"],quotedPrinciple:"one should acquire wealth without harming others, through means that are lawful and free from coercion"},
+    {title:"Withholding of earned livelihood",category:"exploitation",severity:"critical",clauseReference:"§7.2",principle:"Depriving a worker of wages already earned is a form of harm.",explanation:"Forfeiting accrued pay takes what has already been earned by labour, which the tradition treats as a serious wrong.",sourceIds:["S2"],quotedPrinciple:null}
+  ],
+  suggestedRevisions:[
+    {clauseReference:"§7.2",original:"The Contractor may terminate only upon ninety (90) days notice, and forfeits all accrued unpaid compensation.",proposed:"Either party may terminate on thirty (30) days' written notice. All compensation accrued through the termination date remains payable.",rationale:"Restores reciprocity and complies with wage-payment law; removes an unenforceable forfeiture.",sourceIds:["S2"]},
+    {clauseReference:"§7.3",original:"For five (5) years after termination, the Contractor shall not, anywhere in the world, engage in any competing business.",proposed:"For twelve (12) months after termination, within [defined territory], the Contractor shall not provide [defined competing services] to a direct competitor.",rationale:"Narrows duration, geography, and scope to something defensible and proportionate.",sourceIds:[]}
+  ],
+  questionsForCounterparty:["Will accrued compensation be paid on any termination, as required by law?","Can the non-compete be limited in time, territory, and defined scope?","What neutral forum will resolve disputes, given §7.4 as written is unenforceable?"],
+  riskRegister:[
+    {item:"Unpaid earned wages on resignation",likelihood:"high",impact:"high",mitigation:"Strike the forfeiture; guarantee payment of accrued amounts."},
+    {item:"Non-compete unenforceable / litigated",likelihood:"medium",impact:"high",mitigation:"Narrow scope; add severability."},
+    {item:"Dispute waiver challenged",likelihood:"high",impact:"medium",mitigation:"Replace with a named neutral forum."}
+  ],
+  citations:[
+    {id:"S1",title:"Sigālovāda Sutta",reference:"DN 31",translationStatus:"translated",score:0.91,groundingStatus:"verified"},
+    {id:"S2",title:"Vinaya — commentary on wages",reference:"uncertain provenance",translationStatus:"machine",score:0.68,groundingStatus:"unverified"}
+  ]
+};
+const WARN=["A quoted principle attributed to \\"Vinaya — commentary on wages\\" (S2) does not match the retrieved text (31% overlap) — likely paraphrased; shown as unverified."];
+const DISC="This analysis is generated by an AI system to help you spot issues and questions. It is not legal advice and is not a substitute for review by a qualified attorney in the relevant jurisdiction.";
+function issue(i,eth){return `<div class="issue il-${i.severity}"><div class="top"><h4>${esc(i.title)}</h4><span class="sev ${i.severity}">${i.severity}</span></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="cat">${esc(cap(i.category))}</span>${i.clauseReference&&i.clauseReference!=='n/a'?`<span class="clause">${esc(i.clauseReference)}</span>`:''}</div>${eth&&i.principle?`<p class="principle"><strong>Principle:</strong> ${esc(i.principle)}</p>`:''}<p>${esc(i.explanation)}</p>${eth&&i.quotedPrinciple?`<div class="qp">“${esc(i.quotedPrinciple)}”<cite>— ${(i.sourceIds||[]).join(', ')}</cite></div>`:''}</div>`;}
+document.getElementById('go').addEventListener('click',()=>{
+  const a=AUDIT;
+  const rr={renegotiate:'Renegotiate'}[a.recommendation]||a.recommendation;
+  const revs=a.suggestedRevisions.map(v=>`<div class="rev"><div class="rh">${esc(v.clauseReference)}</div><div class="diff"><div class="col before"><div class="lbl">Original</div>${esc(v.original)}</div><div class="col after"><div class="lbl">Proposed</div>${esc(v.proposed)}</div></div><div class="rationale">${esc(v.rationale)}</div></div>`).join('');
+  const risk=a.riskRegister.map(x=>`<tr><td>${esc(x.item)}</td><td><span class="li ${x.likelihood}">${x.likelihood}</span></td><td><span class="li ${x.impact}">${x.impact}</span></td><td>${esc(x.mitigation)}</td></tr>`).join('');
+  const cites=a.citations.map(x=>`<div class="cite"><span class="id">${x.id}</span><span class="info"><b>${esc(x.title)}</b><span>${esc(x.reference)} · ${x.translationStatus} · relevance ${x.score.toFixed(2)}</span></span><span class="badge ${x.groundingStatus}">${x.groundingStatus}</span></div>`).join('');
+  document.getElementById('out').innerHTML=`<article class="result">
+    <div class="toolbar"><span class="credits">130 credits spent · 4,999,870 remaining</span><button class="ghost-btn" onclick="window.print()">Print / export PDF</button></div>
+    <div class="riskbanner r-${a.overallRiskRating}"><div class="dial">${a.overallRiskRating}</div><div><div class="rr">Overall risk · ${a.overallRiskRating}</div><div class="rec">${rr}</div><div class="why">${esc(a.recommendationRationale)}</div></div></div>
+    <h2>Summary</h2><p class="lead">${esc(a.summary)}</p>
+    <div class="snap"><div class="cell"><div class="k">Type</div><div class="v">${esc(a.contractSnapshot.type)}</div></div><div class="cell"><div class="k">Parties</div><div class="v">${esc(a.contractSnapshot.parties)}</div></div><div class="cell"><div class="k">Term</div><div class="v">${esc(a.contractSnapshot.termOrDuration)}</div></div><div class="cell"><div class="k">Governing law</div><div class="v">${esc(a.contractSnapshot.governingLaw)}</div></div></div>
+    <div class="section"><h3>Logical issues <span class="count">${a.logicalIssues.length}</span></h3>${a.logicalIssues.map(i=>issue(i,false)).join('')}</div>
+    <div class="section"><h3>Ethical issues — Right Livelihood <span class="count">${a.ethicalIssues.length}</span></h3>${a.ethicalIssues.map(i=>issue(i,true)).join('')}</div>
+    <div class="section"><h3>Suggested revisions <span class="count">${a.suggestedRevisions.length}</span></h3>${revs}</div>
+    <div class="section"><h3>Questions for the counterparty</h3><ul class="q">${a.questionsForCounterparty.map(q=>`<li>${esc(q)}</li>`).join('')}</ul></div>
+    <div class="section"><h3>Risk register</h3><table class="rr"><thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation</th></tr></thead><tbody>${risk}</tbody></table></div>
+    <div class="section"><h3>Sources &amp; grounding</h3><div class="cites">${cites}</div><p style="margin-top:10px;font-size:12.5px;color:var(--muted)"><strong>verified</strong> = a quoted principle matched the retrieved source · <strong>unverified</strong> = quote not found in the source.</p></div>
+    <div class="warnbox" style="margin-top:22px;border:1px solid var(--line2);background:var(--warn-soft);border-radius:10px;padding:12px 16px"><h4 style="margin:0 0 6px;color:var(--warn);font-size:13px">Notes &amp; caveats</h4><ul style="margin:0;padding-left:18px;font-size:13px;color:#6b5320">${WARN.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+    <div class="disclaimer">${esc(DISC)}</div></article>`;
+  document.getElementById('out').scrollIntoView({behavior:'smooth',block:'start'});
+});
+</script>
+</body>
+</html>

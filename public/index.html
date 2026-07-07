@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dharma Contract Auditor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f7f1e6;--raised:#fdfaf3;--ink:#2a2118;--ink2:#4c4234;--muted:#8a7d68;
+    --line:#ece2d0;--line2:#e0d3ba;--saffron:#c8641b;--saffron-d:#a8500f;--saffron-soft:#f3e2d0;
+    --indigo:#2e3564;--indigo-soft:#e4e6f1;--gold:#b4841f;
+    --ok:#2f7d4f;--ok-soft:#e0f0e6;--warn:#9a6a12;--warn-soft:#f6ecd4;--bad:#9c3535;--bad-soft:#f3e0dd;
+    --serif:"Fraunces","Iowan Old Style",Palatino,Georgia,serif;
+    --sans:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --shadow:0 1px 2px rgba(70,50,25,.05),0 14px 40px rgba(90,66,30,.09);
+  }
+  *{box-sizing:border-box}html,body{margin:0;padding:0}
+  body{font-family:var(--sans);color:var(--ink);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;
+    background:radial-gradient(1100px 520px at 82% -8%,#eae6f2 0%,rgba(234,230,242,0) 55%),radial-gradient(820px 480px at -8% -4%,#f6e6cf 0%,rgba(246,230,207,0) 48%),var(--paper);}
+  .wrap{max-width:1160px;margin:0 auto;padding:44px 24px 110px}
+  .hero{display:flex;gap:18px;align-items:flex-start;margin-bottom:30px}
+  .mark{flex:none;width:56px;height:56px;border-radius:16px;display:grid;place-items:center;color:#fff;background:linear-gradient(150deg,#3a4177,#262c56);box-shadow:0 6px 18px rgba(38,44,86,.28);font-family:var(--serif);font-size:28px;font-weight:600}
+  .kicker{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--indigo);font-weight:600}
+  .hero h1{font-family:var(--serif);font-weight:600;font-size:38px;line-height:1.02;letter-spacing:-.02em;margin:4px 0 8px}
+  .hero p{margin:0;color:var(--muted);max-width:66ch}.hero em{color:var(--ink2);font-style:italic}
+  .grid{display:grid;grid-template-columns:400px 1fr;gap:28px;align-items:start}
+  @media(max-width:940px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--raised);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+  .panel{position:sticky;top:22px;padding:22px}@media(max-width:940px){.panel{position:static}}
+  .field{margin-bottom:16px}
+  .field>label{display:block;font-size:12.5px;font-weight:600;margin-bottom:7px;color:var(--ink)}
+  .field .hint{font-weight:400;color:var(--muted)}
+  input[type=text],select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line2);border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-size:14px;transition:.15s}
+  textarea{resize:vertical}
+  textarea#contract{min-height:230px;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;line-height:1.5}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px var(--indigo-soft)}
+  .seg{display:flex;gap:6px;flex-wrap:wrap}
+  .seg button{flex:1 1 auto;padding:8px 10px;border:1px solid var(--line2);background:#fff;color:var(--muted);border-radius:10px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.12s}
+  .seg button:hover{border-color:var(--indigo);color:var(--ink)}
+  .seg button[aria-pressed=true]{background:var(--indigo);border-color:var(--indigo);color:#fff}
+  .row2{display:flex;gap:8px}.row2 .link-btn{margin-left:auto}
+  .link-btn{background:none;border:none;color:var(--indigo);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;padding:2px 0}
+  .btn-primary{width:100%;margin-top:6px;padding:13px 16px;border:none;border-radius:11px;color:#fff;font:inherit;font-size:15px;font-weight:600;cursor:pointer;background:linear-gradient(150deg,#3a4177,#262c56);box-shadow:0 6px 16px rgba(38,44,86,.26);transition:.1s}
+  .btn-primary:hover{filter:brightness(1.08)}.btn-primary:active{transform:translateY(1px)}.btn-primary:disabled{opacity:.6;cursor:progress}
+  .empty{padding:72px 32px;text-align:center;color:var(--muted)}.empty .om{font-size:44px;opacity:.4;color:var(--indigo)}
+  .spinner{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .result{padding:30px 36px}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .credits{font-size:12.5px;color:var(--muted)}
+  .ghost-btn{border:1px solid var(--line2);background:#fff;border-radius:10px;padding:8px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink)}
+  .ghost-btn:hover{border-color:var(--indigo)}
+  .riskbanner{display:flex;align-items:center;gap:16px;padding:16px 20px;border-radius:14px;margin-bottom:18px;border:1px solid}
+  .riskbanner .rr{font-family:var(--serif);font-size:13px;text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+  .riskbanner .rec{font-size:19px;font-weight:600;font-family:var(--serif)}
+  .riskbanner .why{font-size:13.5px;margin-top:2px}
+  .r-low{background:var(--ok-soft);border-color:#bfe0cc;color:#1f5a38}
+  .r-moderate{background:var(--warn-soft);border-color:#e8d6a8;color:#6b5320}
+  .r-elevated{background:var(--saffron-soft);border-color:#e7c9a6;color:#8a4310}
+  .r-high{background:var(--bad-soft);border-color:#e6bcb6;color:#7a2626}
+  .dial{flex:none;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;text-transform:uppercase;background:#fff8;border:2px solid currentColor}
+  .result h2{font-family:var(--serif);font-weight:600;font-size:22px;margin:0 0 6px}
+  .lead{font-size:16px;color:var(--ink2);margin:0 0 16px}
+  .snap{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:6px}
+  .snap .cell{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .snap .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+  .snap .v{font-size:14px;margin-top:2px}
+  .section{margin-top:26px;padding-top:22px;border-top:1px solid var(--line)}
+  .section>h3{font-family:var(--serif);font-weight:600;font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:var(--indigo);margin:0 0 14px;display:flex;align-items:center;gap:8px}
+  .count{background:var(--indigo-soft);color:var(--indigo);font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;letter-spacing:0}
+  .issue{border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:13px 15px;margin-bottom:10px;background:#fff}
+  .issue .top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:5px}
+  .issue h4{margin:0;font-size:15px;font-weight:600;flex:1;min-width:180px}
+  .sev{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:6px}
+  .sev.low{background:var(--ok-soft);color:var(--ok)}.sev.medium{background:var(--warn-soft);color:var(--warn)}
+  .sev.high{background:var(--saffron-soft);color:var(--saffron-d)}.sev.critical{background:var(--bad-soft);color:var(--bad)}
+  .il-low{border-left-color:#7bbd97}.il-medium{border-left-color:#d9b45e}.il-high{border-left-color:var(--saffron)}.il-critical{border-left-color:var(--bad)}
+  .cat{font-size:11px;color:var(--muted);text-transform:capitalize}
+  .clause{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--indigo);background:var(--indigo-soft);padding:1px 7px;border-radius:5px}
+  .issue p{margin:6px 0 0}
+  .principle{margin:7px 0 0;font-size:13.5px;color:var(--ink2)}
+  .qp{margin:8px 0 0;padding:8px 12px;border-left:3px solid var(--indigo);background:#fbfaf6;border-radius:0 8px 8px 0;font-family:var(--serif);font-size:14px}
+  .qp cite{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:3px}
+  .srcpill{font-size:11px;font-weight:600;color:var(--indigo);background:var(--indigo-soft);padding:1px 7px;border-radius:999px}
+  .rev{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:10px}
+  .rev .rh{padding:8px 13px;background:#faf5ea;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+  .rev .diff{display:grid;grid-template-columns:1fr 1fr;gap:0}@media(max-width:620px){.rev .diff{grid-template-columns:1fr}}
+  .rev .col{padding:11px 14px;font-size:13.5px}
+  .rev .before{background:#fbeeec;border-right:1px solid var(--line)}
+  .rev .after{background:#eef6f0}
+  .rev .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:4px}
+  .rev .before .lbl{color:var(--bad)}.rev .after .lbl{color:var(--ok)}
+  .rev .rationale{padding:10px 14px;font-size:13px;color:var(--ink2);border-top:1px solid var(--line)}
+  ul.q{margin:0;padding-left:20px}ul.q li{margin-bottom:7px}
+  table.rr{width:100%;border-collapse:collapse;font-size:13px}
+  table.rr th,table.rr td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  table.rr th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+  .li{font-weight:600;text-transform:capitalize}.li.high{color:var(--bad)}.li.medium{color:var(--warn)}.li.low{color:var(--ok)}
+  .cites{display:grid;gap:8px}
+  .cite{display:flex;align-items:baseline;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  .cite .id{font-weight:600;color:var(--indigo);font-size:13px}.cite .info{flex:1}.cite .info b{font-weight:600;font-size:14px}.cite .info span{display:block;color:var(--muted);font-size:12.5px}
+  .badge{flex:none;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+  .badge.verified{background:var(--ok-soft);color:var(--ok)}.badge.partial{background:var(--warn-soft);color:var(--warn)}.badge.unverified{background:var(--bad-soft);color:var(--bad)}
+  .warnbox{margin-top:22px;border:1px solid var(--line2);background:var(--warn-soft);border-radius:10px;padding:12px 16px}
+  .warnbox h4{margin:0 0 6px;color:var(--warn);font-size:13px}.warnbox ul{margin:0;padding-left:18px;font-size:13px;color:#6b5320}
+  .disclaimer{margin-top:18px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;font-style:italic}
+  .errbox{margin:24px;padding:22px;border:1px solid var(--bad);background:var(--bad-soft);border-radius:14px;color:#6f2020}.errbox b{display:block;margin-bottom:4px}
+  @media print{.panel,.hero p,.toolbar{display:none!important}.grid{grid-template-columns:1fr}body{background:#fff}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="mark" aria-hidden="true">§</div>
+    <div>
+      <div class="kicker">Dharma AI · Developer Platform</div>
+      <h1>Contract Auditor</h1>
+      <p>Reviews a contract through two lenses at once — <em>legal-logical consistency</em> and <em>Right Livelihood ethics</em> — grounded in the Dharma corpus. Every ethical citation is checked against the retrieved source before it earns a <em>verified</em> badge. Not legal advice.</p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="card panel">
+      <div class="field"><label for="contract">Contract text <span class="hint">— paste the agreement</span></label>
+        <textarea id="contract" placeholder="Paste the full contract or the clauses you want reviewed…"></textarea>
+        <div class="row2"><button class="link-btn" id="sample">Load sample clause</button></div>
+      </div>
+      <div class="field"><label>Contract type</label>
+        <select id="ctype">
+          <option value="employment">Employment</option><option value="vendor / services">Vendor / services</option>
+          <option value="lease">Lease</option><option value="NDA">NDA</option>
+          <option value="partnership">Partnership</option><option value="sales / purchase">Sales / purchase</option>
+          <option value="other" selected>Other</option>
+        </select></div>
+      <div class="field"><label>Review from the perspective of</label>
+        <div class="seg" id="persp"><button data-v="reviewing party">Your side</button><button data-v="counterparty">Counterparty</button><button data-v="neutral" aria-pressed="true">Neutral</button></div></div>
+      <div class="field"><label for="focus">Particular concerns <span class="hint">— optional</span></label>
+        <input id="focus" type="text" placeholder="e.g. non-compete scope, termination, IP assignment" /></div>
+      <button class="btn-primary" id="go">Audit contract</button>
+    </section>
+
+    <section class="card" id="out">
+      <div class="empty"><div class="om" aria-hidden="true">§</div><p>Paste a contract and audit it. The tool retrieves ethical-framework passages, analyzes logic and ethics, proposes revisions, and verifies every citation.</p></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const cap = s => String(s??"").replace(/_/g," ");
+document.querySelectorAll('.seg').forEach(seg=>seg.addEventListener('click',e=>{
+  if(e.target.tagName!=='BUTTON')return;
+  seg.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed','false'));
+  e.target.setAttribute('aria-pressed','true');
+}));
+const pressed = id => document.querySelector('#'+id+' [aria-pressed=true]').dataset.v;
+
+const SAMPLE = `SECTION 7. TERMINATION & NON-COMPETE
+7.1 The Company may terminate this Agreement at any time, for any reason or no reason, effective immediately and without notice or severance.
+7.2 The Contractor may terminate only upon ninety (90) days written notice, and shall forfeit all accrued but unpaid compensation upon any termination initiated by the Contractor.
+7.3 For a period of five (5) years following termination, the Contractor shall not, anywhere in the world, engage in any business that competes, directly or indirectly, with the Company or its affiliates.
+7.4 All disputes shall be resolved solely at the Company's discretion, and the Contractor waives any right to review, appeal, or legal recourse.`;
+
+$('#sample').addEventListener('click',()=>{ $('#contract').value = SAMPLE; $('#ctype').value='employment'; });
+
+async function audit(){
+  const btn=$('#go'); const label=btn.innerHTML; btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Reviewing the contract…';
+  $('#out').innerHTML='<div class="empty"><div class="om" aria-hidden="true">§</div><p>Retrieving ethical-framework sources, analyzing logic and ethics, and verifying citations…</p></div>';
+  const body={ contractText:$('#contract').value.trim(), contractType:$('#ctype').value, perspective:pressed('persp'), focus:$('#focus').value.trim()||undefined };
+  try{
+    const res=await fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await res.json();
+    if(!res.ok){
+      const msg=data.error==='token_pool_empty'?'Your Dharma credit pool is empty. Fund it in the console, then try again.'
+        :data.error==='server_misconfigured'?data.message
+        :data.error==='invalid_request'?'Please paste more contract text (at least a clause or two).'
+        :(data.message||data.error||`Request failed (${res.status})`);
+      throw new Error(msg);
+    }
+    render(data);
+  }catch(err){ $('#out').innerHTML=`<div class="errbox"><b>Could not audit the contract</b>${esc(err.message)}</div>`; }
+  finally{ btn.disabled=false; btn.innerHTML=label; }
+}
+
+function render(r){
+  const a=r.audit, w=r.warnings||[], c=r.credits||{};
+  const rr={proceed:'Proceed',proceed_with_changes:'Proceed with changes',renegotiate:'Renegotiate',do_not_sign:'Do not sign'}[a.recommendation]||a.recommendation;
+  const snap=a.contractSnapshot||{};
+  const issue = (i,eth)=>`<div class="issue il-${esc(i.severity)}"><div class="top"><h4>${esc(i.title)}</h4><span class="sev ${esc(i.severity)}">${esc(i.severity)}</span></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="cat">${esc(cap(i.category))}</span>${i.clauseReference&&i.clauseReference!=='n/a'?`<span class="clause">${esc(i.clauseReference)}</span>`:''}</div>
+    ${eth&&i.principle?`<p class="principle"><strong>Principle:</strong> ${esc(i.principle)}</p>`:''}
+    <p>${esc(i.explanation)}</p>
+    ${eth&&i.quotedPrinciple?`<div class="qp">“${esc(i.quotedPrinciple)}”<cite>— ${(i.sourceIds||[]).map(esc).join(', ')}</cite></div>`:(eth&&i.sourceIds&&i.sourceIds.length?`<div style="margin-top:6px">${i.sourceIds.map(s=>`<span class="srcpill">${esc(s)}</span>`).join(' ')}</div>`:'')}</div>`;
+
+  const logical=(a.logicalIssues||[]).map(i=>issue(i,false)).join('')||'<p style="color:var(--muted)">No logical issues flagged.</p>';
+  const ethical=(a.ethicalIssues||[]).map(i=>issue(i,true)).join('')||'<p style="color:var(--muted)">No ethical concerns flagged.</p>';
+  const revs=(a.suggestedRevisions||[]).map(v=>`<div class="rev"><div class="rh">${esc(v.clauseReference||'')}</div><div class="diff"><div class="col before"><div class="lbl">Original</div>${esc(v.original)}</div><div class="col after"><div class="lbl">Proposed</div>${esc(v.proposed)}</div></div><div class="rationale">${esc(v.rationale)}${(v.sourceIds&&v.sourceIds.length)?' '+v.sourceIds.map(s=>`<span class="srcpill">${esc(s)}</span>`).join(' '):''}</div></div>`).join('')||'<p style="color:var(--muted)">No revisions proposed.</p>';
+  const qs=(a.questionsForCounterparty||[]).map(q=>`<li>${esc(q)}</li>`).join('');
+  const risk=(a.riskRegister||[]).map(x=>`<tr><td>${esc(x.item)}</td><td><span class="li ${esc(x.likelihood)}">${esc(x.likelihood)}</span></td><td><span class="li ${esc(x.impact)}">${esc(x.impact)}</span></td><td>${esc(x.mitigation)}</td></tr>`).join('');
+  const cites=(a.citations||[]).map(x=>`<div class="cite"><span class="id">${esc(x.id)}</span><span class="info"><b>${esc(x.title)}</b><span>${esc(x.reference)} · ${esc(x.translationStatus)} · relevance ${Number(x.score).toFixed(2)}</span></span><span class="badge ${esc(x.groundingStatus)}">${esc(x.groundingStatus)}</span></div>`).join('');
+  const warn=w.length?`<div class="warnbox"><h4>Notes &amp; caveats</h4><ul>${w.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:'';
+
+  $('#out').innerHTML=`<article class="result">
+    <div class="toolbar"><span class="credits">${c.spent||0} credits spent${c.poolBalance!=null?` · ${Number(c.poolBalance).toLocaleString()} remaining`:''}</span><button class="ghost-btn" onclick="window.print()">Print / export PDF</button></div>
+    <div class="riskbanner r-${esc(a.overallRiskRating)}"><div class="dial">${esc(a.overallRiskRating)}</div><div><div class="rr">Overall risk · ${esc(a.overallRiskRating)}</div><div class="rec">${esc(rr)}</div><div class="why">${esc(a.recommendationRationale)}</div></div></div>
+    <h2>Summary</h2><p class="lead">${esc(a.summary)}</p>
+    <div class="snap">
+      <div class="cell"><div class="k">Type</div><div class="v">${esc(snap.type||'—')}</div></div>
+      <div class="cell"><div class="k">Parties</div><div class="v">${esc(snap.parties||'—')}</div></div>
+      <div class="cell"><div class="k">Term</div><div class="v">${esc(snap.termOrDuration||'—')}</div></div>
+      <div class="cell"><div class="k">Governing law</div><div class="v">${esc(snap.governingLaw||'—')}</div></div>
+    </div>
+
+    <div class="section"><h3>Logical issues <span class="count">${(a.logicalIssues||[]).length}</span></h3>${logical}</div>
+    <div class="section"><h3>Ethical issues — Right Livelihood <span class="count">${(a.ethicalIssues||[]).length}</span></h3>${ethical}</div>
+    <div class="section"><h3>Suggested revisions <span class="count">${(a.suggestedRevisions||[]).length}</span></h3>${revs}</div>
+    ${qs?`<div class="section"><h3>Questions for the counterparty</h3><ul class="q">${qs}</ul></div>`:''}
+    ${risk?`<div class="section"><h3>Risk register</h3><table class="rr"><thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation</th></tr></thead><tbody>${risk}</tbody></table></div>`:''}
+    ${cites?`<div class="section"><h3>Sources &amp; grounding</h3><div class="cites">${cites}</div><p style="margin-top:10px;font-size:12.5px;color:var(--muted)"><strong>verified</strong> = a quoted principle matched the retrieved source · <strong>partial</strong> = cited but not quoted · <strong>unverified</strong> = quote not found in the source.</p></div>`:''}
+    ${warn}
+    <div class="disclaimer">${esc(r.disclaimer||'')}</div>
+  </article>`;
+  $('#out').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('#go').addEventListener('click',audit);
+</script>
+</body>
+</html>
